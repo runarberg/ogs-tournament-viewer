@@ -17,40 +17,47 @@
         <ul>
           <template data-iterate="players">
             <li>
-              <article>
-                <h3>
-                  <a data-props="href:playerHref" data-text="username"></a>
-                </h3>
+              <template data-await="fetchingPlayer">
+                <article>
+                  <h3>
+                    <a data-props="href:playerHref" data-text="username"></a>
+                  </h3>
 
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Color</th>
-                      <th>Opponent</th>
-                      <th>Result (Move)</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    <template data-iterate="games">
+                  <table>
+                    <thead>
                       <tr>
-                        <td data-text="color"></td>
-
-                        <td>
-                          <a
-                            data-props="href:opponentHref"
-                            data-text="opponent"
-                          ></a>
-                        </td>
-
-                        <td>
-                          <a data-props="href:gameHref" data-text="result"></a>
-                        </td>
+                        <th>Color</th>
+                        <th>Opponent</th>
+                        <th>Result (Move)</th>
                       </tr>
-                    </template>
-                  </tbody>
-                </table>
-              </article>
+                    </thead>
+
+                    <tbody>
+                      <template data-iterate="games">
+                        <tr>
+                          <template data-await="fetchingGame">
+                            <td data-text="color"></td>
+
+                            <td>
+                              <a
+                                data-props="href:opponentHref"
+                                data-text="opponent"
+                              ></a>
+                            </td>
+
+                            <td>
+                              <a
+                                data-props="href:gameHref"
+                                data-text="result"
+                              ></a>
+                            </td>
+                          </template>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </article>
+              </template>
             </li>
           </template>
         </ul>
