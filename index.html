@@ -2,12 +2,59 @@
 
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>OGS – Through the years</title>
     <script src="main.js" type="module" defer></script>
   </head>
 
-  <body>
-    
-  </body>
+  <body></body>
+
+  <template id="template:app/group">
+    <template data-iterate="rounds">
+      <section>
+        <h2>Round <span data-text="roundNumber"></span></h2>
+
+        <ul>
+          <template data-iterate="players">
+            <li>
+              <article>
+                <h3>
+                  <a data-props="href:playerHref" data-text="username"></a>
+                </h3>
+
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Color</th>
+                      <th>Opponent</th>
+                      <th>Result (Move)</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <template data-iterate="games">
+                      <tr>
+                        <td data-text="color"></td>
+
+                        <td>
+                          <a
+                            data-props="href:opponentHref"
+                            data-text="opponent"
+                          ></a>
+                        </td>
+
+                        <td>
+                          <a data-props="href:gameHref" data-text="result"></a>
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </article>
+            </li>
+          </template>
+        </ul>
+      </section>
+    </template>
+  </template>
 </html>

@@ -14,7 +14,7 @@ async function findPlayer(username) {
 }
 
 async function findTournament(id) {
-  const response = await fetch(`${API_ROOT}/tournaments/59567/rounds`);
+  const response = await fetch(`${API_ROOT}/tournaments/${id}/rounds`);
   return response.json();
 }
 
@@ -22,7 +22,9 @@ async function getRounds() {
   const searchParams = new URLSearchParams(window.location.search);
   const [player, tournament] = await Promise.all([
     findPlayer(searchParams.get("player")),
-    findTournament(59567),
+    findTournament(
+      Number.parseInt(searchParams.get("tournament"), 10) || 59567
+    ),
   ]);
 
   if (!player) {
@@ -77,135 +79,71 @@ function getResult(gamedata) {
   return `${winner} + ${gamedata.outcome}`;
 }
 
-function renderGames(player) {
-  const table = document.createElement("table");
-
-  {
-    const thead = document.createElement("thead");
-    const tr = document.createElement("tr");
-
-    {
-      const th = document.createElement("th");
-
-      th.textContent = "Color";
-      tr.appendChild(th);
-    }
-
-    {
-      const th = document.createElement("th");
-
-      th.textContent = "Opponent";
-      tr.appendChild(th);
-    }
-
-    {
-      const th = document.createElement("th");
-
-      th.textContent = "Result (Move)";
-      tr.appendChild(th);
-    }
-
-    thead.appendChild(tr);
-    table.appendChild(thead);
+function fillFragmentData(fragment, data) {
+  for (const node of fragment.querySelectorAll("[data-text]")) {
+    node.textContent = data[node.dataset.text];
   }
 
-  {
-    const tbody = document.createElement("tbody");
-
-    for (const game of player.games) {
-      const isBlack = game.players.black.id === player.player.id;
-      const opponent = isBlack ? game.players.white : game.players.black;
-      const tr = document.createElement("tr");
-
-      {
-        const td = document.createElement("td");
-
-        td.textContent = isBlack ? "Black" : "White";
-        tr.appendChild(td);
-      }
-
-      {
-        const td = document.createElement("td");
-        const anchor = document.createElement("a");
-
-        anchor.href = `https://online-go.com/player/${opponent.id}`;
-        anchor.textContent = opponent.username;
-        td.appendChild(anchor);
-        tr.appendChild(td);
-      }
-
-      {
-        const { gamedata } = game;
-        const td = document.createElement("td");
-        const anchor = document.createElement("a");
-
-        anchor.href = `https://online-go.com/game/${game.id}`;
-        anchor.textContent = getResult(gamedata);
-        td.appendChild(anchor);
-        tr.appendChild(td);
-      }
-
-      tbody.appendChild(tr);
+  for (const node of fragment.querySelectorAll("[data-props]")) {
+    for (const prop of node.dataset.props.split(" ")) {
+      const [key, value] = prop.split(":");
+      node[key] = data[value];
     }
-
-    table.appendChild(tbody);
   }
 
-  return table;
-}
+  for (const template of fragment.querySelectorAll("[data-iterate]")) {
+    const { items, childData } = data[template.dataset.iterate];
 
-function renderPlayer(player) {
-  const article = document.createElement("article");
+    template.after(
+      ...items.map((item) => {
+        const fragment = template.content.cloneNode(true);
+        fillFragmentData(fragment, childData(item));
 
-  {
-    const heading = document.createElement("h3");
-    const anchor = document.createElement("a");
-
-    anchor.href = `https://online-go.com/player/${player.player.id}`;
-    anchor.textContent = player.player.username;
-    heading.appendChild(anchor);
-    article.appendChild(heading);
+        return fragment;
+      })
+    );
   }
-
-  article.appendChild(renderGames(player));
-
-  return article;
-}
-
-function renderRound(round) {
-  const section = document.createElement("section");
-
-  {
-    const heading = document.createElement("h2");
-
-    heading.textContent = `Round ${round.round}`;
-    section.appendChild(heading);
-  }
-
-  {
-    const ul = document.createElement("ul");
-
-    for (const player of round.players) {
-      const li = document.createElement("li");
-
-      li.appendChild(renderPlayer(player));
-      ul.appendChild(li);
-    }
-
-    section.appendChild(ul);
-  }
-
-  return section;
 }
 
 async function main() {
   const rounds = await getRounds();
+  const template = document.getElementById("template:app/group");
+  const fragment = template.content.cloneNode(true);
 
-  for (const round of rounds) {
-    const el = renderRound(round);
+  fillFragmentData(fragment, {
+    rounds: {
+      items: rounds,
+      childData: (round) => ({
+        roundNumber: round.round,
+        players: {
+          items: round.players,
+          childData: (player) => ({
+            username: player.player.username,
+            playerHref: `https://online-go.com/player/${player.player.id}`,
+            games: {
+              items: player.games,
+              childData: (game) => {
+                const isBlack = game.players.black.id === player.player.id;
+                const opponent = isBlack
+                  ? game.players.white
+                  : game.players.black;
 
-    document.body.appendChild(el);
-  }
+                return {
+                  color: isBlack ? "Black" : "White",
+                  gameHref: `https://online-go.com/game/${game.id}`,
+                  opponent: opponent.username,
+                  opponentHref: `https://online-go.com/player/${opponent.id}`,
+                  result: getResult(game.gamedata),
+                };
+              },
+            },
+          }),
+        },
+      }),
+    },
+  });
+
+  document.body.appendChild(fragment);
 }
 
 document.addEventListener("DOMContentLoaded", main);
