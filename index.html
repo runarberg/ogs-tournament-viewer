@@ -5,11 +5,53 @@
     <meta charset="utf-8" />
     <title>OGS – Through the years</title>
     <script src="main.js" type="module" defer></script>
+    <style>
+      .loading a {
+        font-style: italic;
+      }
+    </style>
   </head>
 
   <body></body>
 
-  <template id="template:app/group">
+  <template id="template:app/groups">
+    <template data-iterate="rounds">
+      <section>
+        <h2>Round <span data-text="roundNumber"></span></h2>
+
+        <ul>
+          <template data-iterate="groups">
+            <li>
+              <table class="player-list">
+                <thead>
+                  <tr>
+                    <th>Player</th>
+                    <th>Points</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <template data-iterate="players">
+                    <tr class="player loading" data-dataset="playerId:playerId">
+                      <td>
+                        <a
+                          data-props="href:playerHref"
+                          data-text="username"
+                        ></a>
+                      </td>
+                      <td data-text="points"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </li>
+          </template>
+        </ul>
+      </section>
+    </template>
+  </template>
+
+  <template id="template:app/player-group">
     <template data-iterate="rounds">
       <section>
         <h2>Round <span data-text="roundNumber"></span></h2>
